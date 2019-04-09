@@ -1,29 +1,14 @@
 import React from "react";
 import {Form, Button, Col, Row} from "react-bootstrap"
 
-class ResourceRow extends React.Component {
+class RemoveResource extends React.Component {
   state = {stackId: null};
   constructor(props) {
     super(props);
-    this.inputId = React.createRef();
+    this.resourceId = React.createRef();
 
-    // this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
-
-  /* handleChange(event) {
-    this.setState({value: event.target.value});
-  } */
-/*   componentDidMount() {
-    const { drizzle } = this.props;
-    const contract = drizzle.contracts.ControlAcceso;
-
-    // let drizzle know we want to watch the `myString` method
-    const dataKey = contract.methods['addResource'].cacheCall(this.props.userId);
-
-    // save the `dataKey` to local component state for later reference
-    this.setState({ dataKey });
-  } */
 
   handleSubmit(event) {
     event.preventDefault();
@@ -32,7 +17,7 @@ class ResourceRow extends React.Component {
     console.log(drizzleState.accounts[0])
     // let drizzle know we want to watch the `myString` method
     // const stackId = contract.methods['addResource'].cacheSend(this.inputName.current.value, this.inputOrganization.current.value);
-    const stackId = contract.methods.removeResource.cacheSend(this.inputId.current.value, {gas:6721975});
+    const stackId = contract.methods.removeResource.cacheSend(this.resourceId.current.value, {gas:300000});
     // save the `dataKey` to local component state for later reference
     this.setState({ stackId });
 
@@ -53,14 +38,14 @@ class ResourceRow extends React.Component {
     // if it exists, then we display its value
     return (
       <>
-      <h1 className="d-flex justify-content-center">Añadir recurso</h1>
+      <h1 className="d-flex justify-content-center">Eliminar recurso</h1>
       <Form>
         <Form.Group as={Row} controlId="formPlaintextResourceName">
           <Form.Label column sm="2">
             Indentificador
           </Form.Label>
           <Col sm="10">
-            <Form.Control name="resourceId" plaintext placeholder="#" ref={this.inputId}/>
+            <Form.Control name="resourceId" type="number" placeholder="#" ref={this.resourceId}/>
           </Col>
         </Form.Group>
         <div className="d-flex justify-content-center">
@@ -72,4 +57,4 @@ class ResourceRow extends React.Component {
   }
 }
 
-export default ResourceRow;
+export default RemoveResource;

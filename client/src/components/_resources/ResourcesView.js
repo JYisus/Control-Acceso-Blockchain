@@ -2,7 +2,7 @@ import React from "react";
 import {Row, Col} from "react-bootstrap"
 import ResourcesTable from "./ResourcesTable"
 import AddResource from "./AddResource"
-
+import RemoveResource from "./RemoveResource"
 
 class ResourcesView extends React.Component {
   componentDidMount() {
@@ -20,9 +20,11 @@ class ResourcesView extends React.Component {
       <Row>
         <Col sm={6}>
           <ResourcesTable {...this.props} />
+          
         </Col>
         <Col sm={6}>
           <AddResource {...this.props} />
+          <RemoveResource {...this.props} />
         </Col>
       </Row>
     );
