@@ -4,6 +4,7 @@ contract ControlAcceso {
     address public owner;
     uint public userCount;
     uint public resourceCount;
+    uint public actualResourceId;
     address public user;
     mapping (address => User) public addressToUser;
     mapping (uint => User) public idToUser;
@@ -73,6 +74,7 @@ contract ControlAcceso {
         owner = msg.sender;
         userCount = 0;
         resourceCount = 0;
+        actualResourceId = 0;
         // userCount ++;
         user = 0xAf212b1d492E73c6bF1F542A703dAEB877f42e89;
         addUser(owner, true);
@@ -103,7 +105,8 @@ contract ControlAcceso {
 
     function addResource(string memory _name, string memory _organization) public {
         resourceCount++;
-        uint _id = resourceCount;
+        actualResourceId++;
+        uint _id = actualResourceId;
         userResources[msg.sender].push(_id);
         addressToUser[msg.sender].adminResources++;
         idToResource[_id] = Resource(_id, _name, _organization, msg.sender);
