@@ -24,7 +24,6 @@ class ResourcesView extends React.Component {
         </Col>
         <Col sm={6}>
           <AddResource {...this.props} />
-          <RemoveResource {...this.props} />
         </Col>
       </Row>
     );

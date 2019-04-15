@@ -69,6 +69,9 @@ class ResourceRow extends React.Component {
     else {
       button = <Button onClick={this.handleSubmit.bind(this, resource && resource.value[0])} variant="primary" size="sm">Solicitar</Button>
     }
+    if (resource && (resource.value[0] == 0)) {
+      return null;
+    }
     return (
       <tr>
         <td>{resource && resource.value[0]}</td>

@@ -25,13 +25,14 @@ class ResourcesTable extends React.Component {
     
     if(actualResourceId){
       for(var i=1; i<=actualResourceId.value; i++){
-        rows.push(
-          <ResourceRow
-            {...this.props}
-            userId={i}
-            key={i}
-          />
-        )
+        let row = <ResourceRow
+          {...this.props}
+          userId={i}
+          key={i}
+        />;
+        if(row != null) {
+          rows.push(row)
+        }
       }
     }
 

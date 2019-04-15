@@ -1,5 +1,41 @@
 pragma solidity ^0.5.0;
 
+/* contract ControlAcceso {
+    address public owner;
+    uint public userCount;
+    User[] users;
+    struct User {
+        address userAddress;
+    }
+
+    constructor() public {
+        owner = msg.sender;
+        userCount = 0;
+        addUser(owner);
+    }
+
+    function addUser(address _userAddress) public {
+        User memory _newUser = User(_userAddress);
+        users.push(_newUser);
+        userCount++;
+    }
+
+    function remove(uint index)  returns(User[] memory) {
+        if (index >= array.length) return;
+
+        for (uint i = index; i<array.length-1; i++){
+            array[i] = array[i+1];
+        }
+        delete array[array.length-1];
+        array.length--;
+        return array;
+    }
+
+    function removeUser(address _userAddress) public {
+
+    }
+} */
+
 contract ControlAcceso {
     address public owner;
     uint public userCount;
