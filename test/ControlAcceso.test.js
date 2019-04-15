@@ -22,6 +22,51 @@ contract('ControlAcceso', (accounts) => {
         const userCount = await this.controlAcceso.userCount()
         const usuario = await this.controlAcceso.addressToUser.call(this.firstUser)
         assert.equal(userCount.toNumber(), 1)
+        // assert.equal(usuario.id.toNumber(),1)
+        assert.equal(usuario.userAddress, this.firstUser)
+        assert.equal(usuario.admin, true)
+        //assert.equal(usuario.admin, true)
+    })
+    it('adding user', async() => {
+        const result = await this.controlAcceso.addUser(this.secondUser, false)
+        const userCount = await this.controlAcceso.userCount()
+        assert.equal(userCount.toNumber(), 2)
+        const event = result.logs[0].args
+        assert.equal(event.userAddress, this.secondUser)
+        assert.equal(event.admin, false)
+    })
+    it('remove user', async() => {
+        const result = await this.controlAcceso.removeUser(this.secondUser)
+        const userCount = await this.controlAcceso.userCount()
+        assert.equal(userCount.toNumber(), 1)
+        const event = result.logs[0].args
+        assert.equal(event.userAddress, this.secondUser)
+    })
+})
+/* const ControlAcceso = artifacts.require('./ControlAcceso.sol')
+
+contract('ControlAcceso', (accounts) => {
+    before(async() => {
+        this.controlAcceso = await ControlAcceso.deployed()
+        this.firstUser = await this.controlAcceso.owner()
+        this.noUser = '0xeEF023076D61BBEC2855fe224f3A8Ac510D0bFf8'
+        this.secondUser = '0x35bb4f0b115f8f7d4EcF2de7Cdc041f47453fD0F'
+
+        this.resource1 = { id:1, name: "Camilla", organization: "Camillas SL"}
+        this.resource2 = { id:2, name: "Silla", organization: "Sillas SL"}
+    })
+
+    it('deploys succesfully', async() => {
+        const address = await this.controlAcceso.address
+        assert.notEqual(address, 0x0)
+        assert.notEqual(address, '')
+        assert.notEqual(address, null)
+        assert.notEqual(address, undefined)
+    })
+    it('list users - by address', async() => {
+        const userCount = await this.controlAcceso.userCount()
+        const usuario = await this.controlAcceso.addressToUser.call(this.firstUser)
+        assert.equal(userCount.toNumber(), 1)
         assert.equal(usuario.id.toNumber(),1)
         assert.equal(usuario.user, this.firstUser)
         assert.equal(usuario.admin, true)
@@ -117,4 +162,4 @@ contract('ControlAcceso', (accounts) => {
     // it('user added successfully' async() => {
     //     const userList
     // })
-})
+}) */

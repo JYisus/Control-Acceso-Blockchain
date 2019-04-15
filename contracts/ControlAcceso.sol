@@ -1,26 +1,59 @@
 pragma solidity ^0.5.0;
 
-/* contract ControlAcceso {
+contract ControlAcceso {
     address public owner;
+    address nullAddress = 0x0000000000000000000000000000000000000000;
     uint public userCount;
-    User[] users;
+    mapping(address => User) public addressToUser;
+    // User[] users;
     struct User {
         address userAddress;
+        bool admin;
     }
 
     constructor() public {
         owner = msg.sender;
         userCount = 0;
-        addUser(owner);
+        addUser(owner, true);
     }
 
-    function addUser(address _userAddress) public {
-        User memory _newUser = User(_userAddress);
-        users.push(_newUser);
+    modifier onlyOwner {
+        require(msg.sender == owner, "Only owner can call this function");
+        _;
+    }
+
+    modifier onlyAdmin {
+        require(addressToUser[msg.sender].userAddress != nullAddress && addressToUser[msg.sender].admin == true, "Only admins can call this function");
+        _;
+    }
+
+    event CreateUser(
+        address userAddress,
+        bool admin
+    );
+
+    event RemoveUser(
+        address userAddress
+    );
+
+    function addUser(address _userAddress, bool _admin) public {
+        User memory _newUser = User(_userAddress, _admin);
+        addressToUser[_userAddress] = _newUser;
         userCount++;
+        emit CreateUser(_userAddress, _admin);
     }
 
-    function remove(uint index)  returns(User[] memory) {
+    function removeUser(address _userAddress) public {
+        if (addressToUser[_userAddress].userAddress != nullAddress) {
+            delete addressToUser[_userAddress];
+            emit RemoveUser(_userAddress);
+            userCount--;
+        }
+    }
+
+    
+
+/*     function remove(uint index)  returns(User[] memory) {
         if (index >= array.length) return;
 
         for (uint i = index; i<array.length-1; i++){
@@ -29,14 +62,11 @@ pragma solidity ^0.5.0;
         delete array[array.length-1];
         array.length--;
         return array;
-    }
+    } */
 
-    function removeUser(address _userAddress) public {
+} 
 
-    }
-} */
-
-contract ControlAcceso {
+/* contract ControlAcceso {
     address public owner;
     uint public userCount;
     uint public resourceCount;
@@ -224,3 +254,4 @@ contract ControlAcceso {
         return userRequest[msg.sender][_id].resource;
     }
 }
+ */
