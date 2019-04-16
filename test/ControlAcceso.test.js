@@ -3,9 +3,16 @@ const ControlAcceso = artifacts.require('./ControlAcceso.sol')
 contract('ControlAcceso', (accounts) => {
     before(async() => {
         this.controlAcceso = await ControlAcceso.deployed()
-        this.firstUser = await this.controlAcceso.owner()
+        this.owner = await this.controlAcceso.owner()
         this.noUser = '0xeEF023076D61BBEC2855fe224f3A8Ac510D0bFf8'
-        this.secondUser = '0x35bb4f0b115f8f7d4EcF2de7Cdc041f47453fD0F'
+        // this.secondUser = '0x35bb4f0b115f8f7d4EcF2de7Cdc041f47453fD0F'
+
+        this.firstUser = { userAddress: this.owner, username: "admin", admin: true }
+        this.secondUser = { 
+            userAddress: '0x35bb4f0b115f8f7d4EcF2de7Cdc041f47453fD0F', 
+            username: "Secondary", 
+            admin: false
+        }
 
         this.resource1 = { id:1, name: "Camilla", organization: "Camillas SL"}
         this.resource2 = { id:2, name: "Silla", organization: "Sillas SL"}
@@ -20,27 +27,36 @@ contract('ControlAcceso', (accounts) => {
     })
     it('list users - by address', async() => {
         const userCount = await this.controlAcceso.userCount()
-        const usuario = await this.controlAcceso.addressToUser.call(this.firstUser)
+        const usuario = await this.controlAcceso.addressToUser.call(this.firstUser.userAddress)
         assert.equal(userCount.toNumber(), 1)
         // assert.equal(usuario.id.toNumber(),1)
-        assert.equal(usuario.userAddress, this.firstUser)
+        assert.equal(usuario.userAddress, this.firstUser.userAddress)
+        assert.equal(usuario.username, this.firstUser.username)
+        assert.equal(usuario.admin, true)
+        //assert.equal(usuario.admin, true)
+    })
+    it('list users - by id', async() => {
+        const userCount = await this.controlAcceso.userCount()
+        const usuario = await this.controlAcceso.idToUser.call(1)
+        assert.equal(usuario.userAddress, this.firstUser.userAddress)
+        assert.equal(usuario.username, this.firstUser.username)
         assert.equal(usuario.admin, true)
         //assert.equal(usuario.admin, true)
     })
     it('adding user', async() => {
-        const result = await this.controlAcceso.addUser(this.secondUser, false)
+        const result = await this.controlAcceso.addUser(this.secondUser.userAddress, this.secondUser.username, false)
         const userCount = await this.controlAcceso.userCount()
         assert.equal(userCount.toNumber(), 2)
         const event = result.logs[0].args
-        assert.equal(event.userAddress, this.secondUser)
+        assert.equal(event.userAddress, this.secondUser.userAddress)
         assert.equal(event.admin, false)
     })
     it('remove user', async() => {
-        const result = await this.controlAcceso.removeUser(this.secondUser)
+        const result = await this.controlAcceso.removeUser(this.secondUser.userAddress)
         const userCount = await this.controlAcceso.userCount()
         assert.equal(userCount.toNumber(), 1)
         const event = result.logs[0].args
-        assert.equal(event.userAddress, this.secondUser)
+        assert.equal(event.userAddress, this.secondUser.userAddress)
     })
 })
 /* const ControlAcceso = artifacts.require('./ControlAcceso.sol')

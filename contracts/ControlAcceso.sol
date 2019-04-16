@@ -4,17 +4,33 @@ contract ControlAcceso {
     address public owner;
     address nullAddress = 0x0000000000000000000000000000000000000000;
     uint public userCount;
+    uint public resourceCount;
     mapping(address => User) public addressToUser;
+    mapping(uint => User) public idToUser;
     // User[] users;
     struct User {
         address userAddress;
+        string username;
+        uint id;
         bool admin;
+    }
+
+    struct Resource {
+        uint id;
+        string name;
+        string description;
+        string creationDate;
+        uint creatorId;
     }
 
     constructor() public {
         owner = msg.sender;
-        userCount = 0;
-        addUser(owner, true);
+        resourceCount = 0;
+        userCount = 1;
+        User memory _newUser = User(owner, "admin", userCount, true);
+        addressToUser[owner] = _newUser;
+        idToUser[userCount] = _newUser;
+        emit CreateUser(owner, "admin", userCount, true);
     }
 
     modifier onlyOwner {
@@ -23,12 +39,15 @@ contract ControlAcceso {
     }
 
     modifier onlyAdmin {
-        require(addressToUser[msg.sender].userAddress != nullAddress && addressToUser[msg.sender].admin == true, "Only admins can call this function");
+        // require(addressToUser[msg.sender].userAddress != nullAddress && addressToUser[msg.sender].admin == true, "Only admins can call this function");
+        require(addressToUser[msg.sender].admin == true, "Only admins can call this function");
         _;
     }
 
     event CreateUser(
         address userAddress,
+        string username,
+        uint id,
         bool admin
     );
 
@@ -36,11 +55,38 @@ contract ControlAcceso {
         address userAddress
     );
 
-    function addUser(address _userAddress, bool _admin) public {
-        User memory _newUser = User(_userAddress, _admin);
-        addressToUser[_userAddress] = _newUser;
+    function addUser(address _userAddress, string memory _username, bool _admin) public onlyAdmin {
         userCount++;
-        emit CreateUser(_userAddress, _admin);
+        require(checkUsername(_username), "This username already exist");
+        User memory _newUser = User(_userAddress, _username, userCount,_admin);
+        addressToUser[_userAddress] = _newUser;
+        idToUser[userCount] = _newUser;
+        emit CreateUser(_userAddress, _username, userCount, _admin);
+    }
+
+    /*  Función que comprueba si un userame está en uso.
+        Disminuye mucho la eficiencia del contrato, pues puede 
+        conllevar un gran gasto de gas al crecer el
+        número de usuarios. */
+    function checkUsername(string memory _username) public view returns(bool) {
+        for(uint i=1; i<=userCount; i++) {
+            string memory aux = idToUser[i].username;
+            if(stringToBytes32(_username) == stringToBytes32(aux)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function stringToBytes32(string memory source) public pure returns (bytes32 result) {
+        bytes memory tempEmptyStringTest = bytes(source);
+        if (tempEmptyStringTest.length == 0) {
+            return 0x0;
+        }
+
+        assembly {
+            result := mload(add(source, 32))
+        }
     }
 
     function removeUser(address _userAddress) public {
@@ -51,7 +97,10 @@ contract ControlAcceso {
         }
     }
 
-    
+    //function addResource(string memory _name, string memory _description) public {
+    //    require(addressToUser[msg.sender].id != 0, "Only registered users can add resources");
+    //    Resource _newResource = Resource(userCount, _name, _description)
+    //}    
 
 /*     function remove(uint index)  returns(User[] memory) {
         if (index >= array.length) return;
