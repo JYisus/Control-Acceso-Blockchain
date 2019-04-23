@@ -96,8 +96,8 @@ contract ControlAcceso {
     );
 
     function addUser(address _userAddress, string memory _username, bool _admin) public onlyAdmin {
-        require(checkUsername(_username), "This username already exist");
         userCount++;
+        require(checkUsername(_username), "This username already exist");
         User memory _newUser = User(_userAddress, _username, userCount,_admin, 0, 0);
         addressToUser[_userAddress] = _newUser;
         idToUserAddress[userCount] = _userAddress;
@@ -111,7 +111,7 @@ contract ControlAcceso {
         número de usuarios. 
     */
     function checkUsername(string memory _username) public view returns(bool) {
-         for(uint i=0; i<userCount; i++) {
+         for(uint i=1; i<=userCount; i++) {
             // address exu = usersArray[i];
             //string memory aux = addressToUser[exu].username;
             string memory aux = addressToUser[idToUserAddress[i]].username;

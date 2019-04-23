@@ -15,7 +15,7 @@ contract('ControlAcceso', (accounts) => {
         }
         this.thirdUser = { 
             userAddress: '0xe9A4b8429Ce4edfA7503Bf12338F2c657AaE3be1', 
-            username: "Secondary", 
+            username: "OtroMais", 
             admin: false
         }
 
