@@ -13,9 +13,14 @@ contract('ControlAcceso', (accounts) => {
             username: "Secondary", 
             admin: false
         }
+        this.thirdUser = { 
+            userAddress: '0xe9A4b8429Ce4edfA7503Bf12338F2c657AaE3be1', 
+            username: "Secondary", 
+            admin: false
+        }
 
-        this.resource1 = { id:1, name: "Camilla", organization: "Camillas SL"}
-        this.resource2 = { id:2, name: "Silla", organization: "Sillas SL"}
+        this.resource1 = { id:1, name: "Camilla", description: "Pues una camilla"}
+        this.resource2 = { id:2, name: "Silla", description: "Pues una silla"}
     })
 
     it('deploys succesfully', async() => {
@@ -35,14 +40,6 @@ contract('ControlAcceso', (accounts) => {
         assert.equal(usuario.admin, true)
         //assert.equal(usuario.admin, true)
     })
-    it('list users - by id', async() => {
-        const userCount = await this.controlAcceso.userCount()
-        const usuario = await this.controlAcceso.idToUser.call(1)
-        assert.equal(usuario.userAddress, this.firstUser.userAddress)
-        assert.equal(usuario.username, this.firstUser.username)
-        assert.equal(usuario.admin, true)
-        //assert.equal(usuario.admin, true)
-    })
     it('adding user', async() => {
         const result = await this.controlAcceso.addUser(this.secondUser.userAddress, this.secondUser.username, false)
         const userCount = await this.controlAcceso.userCount()
@@ -51,12 +48,48 @@ contract('ControlAcceso', (accounts) => {
         assert.equal(event.userAddress, this.secondUser.userAddress)
         assert.equal(event.admin, false)
     })
+    it('adding another user', async() => {
+        const result = await this.controlAcceso.addUser(this.thirdUser.userAddress, this.thirdUser.username, false)
+        const userCount = await this.controlAcceso.userCount()
+        assert.equal(userCount.toNumber(), 3)
+        const event = result.logs[0].args
+        assert.equal(event.userAddress, this.thirdUser.userAddress)
+        assert.equal(event.admin, false)
+    })
     it('remove user', async() => {
         const result = await this.controlAcceso.removeUser(this.secondUser.userAddress)
         const userCount = await this.controlAcceso.userCount()
-        assert.equal(userCount.toNumber(), 1)
+        assert.equal(userCount.toNumber(), 2)
         const event = result.logs[0].args
         assert.equal(event.userAddress, this.secondUser.userAddress)
+    })
+    it('add resource', async() => {
+        const result = await this.controlAcceso.addResource(this.resource1.name, this.resource1.description)
+        const resourceCount = await this.controlAcceso.resourceCount()
+        const event = result.logs[0].args
+        const resource = await this.controlAcceso.idToResource.call(this.resource1.id)
+        const usuario = await this.controlAcceso.addressToUser.call(this.firstUser.userAddress)
+
+        assert.equal(resourceCount.toNumber(), 1)
+        assert.equal(event.id.toNumber(), 1)
+        assert.equal(event.name, this.resource1.name)
+        assert.equal(resource.id.toNumber(),1)
+        assert.equal(resource.name, this.resource1.name)
+        assert.equal(resource.description, this.resource1.description)
+        assert.equal(resource.creator, this.firstUser.userAddress)
+        //assert.equal(usuario.adminResources, 1)
+    })
+    it('remove resource', async() => {
+        const result = await this.controlAcceso.removeResource(this.resource1.id)
+        const resourceCount = await this.controlAcceso.resourceCount()
+        assert.equal(resourceCount.toNumber(), 0)
+        const event = result.logs[0].args
+        assert.equal(event.id.toNumber(), 1)
+        const resource = await this.controlAcceso.idToResource.call(this.resource1.id)
+        assert.equal(resource.id.toNumber(),0)
+        assert.equal(resource.name, '')
+        // const usuario = await this.controlAcceso.addressToUser.call(this.firstUser)
+        // assert.equal(usuario.adminResources, 1)
     })
 })
 /* const ControlAcceso = artifacts.require('./ControlAcceso.sol')
@@ -67,7 +100,7 @@ contract('ControlAcceso', (accounts) => {
         this.firstUser = await this.controlAcceso.owner()
         this.noUser = '0xeEF023076D61BBEC2855fe224f3A8Ac510D0bFf8'
         this.secondUser = '0x35bb4f0b115f8f7d4EcF2de7Cdc041f47453fD0F'
-
+s SL"
         this.resource1 = { id:1, name: "Camilla", organization: "Camillas SL"}
         this.resource2 = { id:2, name: "Silla", organization: "Sillas SL"}
     })
