@@ -25,6 +25,7 @@ contract('ControlAcceso', (accounts) => {
 
     it('deploys succesfully', async() => {
         const address = await this.controlAcceso.address
+
         assert.notEqual(address, 0x0)
         assert.notEqual(address, '')
         assert.notEqual(address, null)
@@ -43,16 +44,18 @@ contract('ControlAcceso', (accounts) => {
     it('adding user', async() => {
         const result = await this.controlAcceso.addUser(this.secondUser.userAddress, this.secondUser.username, false)
         const userCount = await this.controlAcceso.userCount()
-        assert.equal(userCount.toNumber(), 2)
         const event = result.logs[0].args
+
+        assert.equal(userCount.toNumber(), 2)
         assert.equal(event.userAddress, this.secondUser.userAddress)
         assert.equal(event.admin, false)
     })
     it('adding another user', async() => {
         const result = await this.controlAcceso.addUser(this.thirdUser.userAddress, this.thirdUser.username, false)
         const userCount = await this.controlAcceso.userCount()
-        assert.equal(userCount.toNumber(), 3)
         const event = result.logs[0].args
+
+        assert.equal(userCount.toNumber(), 3)
         assert.equal(event.userAddress, this.thirdUser.userAddress)
         assert.equal(event.admin, false)
 
@@ -64,12 +67,13 @@ contract('ControlAcceso', (accounts) => {
     it('remove user', async() => {
         const result = await this.controlAcceso.removeUser(this.secondUser.userAddress)
         const userCount = await this.controlAcceso.userCount()
+        const event = result.logs[0].args
+
         for(i=0; i<userCount; i++) {
             const user = await this.controlAcceso.getUser(i)
             console.log(`${i}: ${user}`)
         } 
         assert.equal(userCount.toNumber(), 2)
-        const event = result.logs[0].args
         assert.equal(event.userAddress, this.secondUser.userAddress)
     })
     it('add resource', async() => {
@@ -114,13 +118,35 @@ contract('ControlAcceso', (accounts) => {
         } 
         //assert.equal(usuario.adminResources, 1)
     })
+    it('request resource', async() => {
+        const result = await this.controlAcceso.requestResource(1)
+        const resourceRequested = await this.controlAcceso.idToResource.call(this.resource1.id)
+        const adminUser = await this.controlAcceso.addressToUser(resourceRequested.creator)
+        const event = result.logs[0].args
+        const requester = await this.controlAcceso.isRequested(1)
+
+        assert.equal(event.resource.toNumber(), this.resource1.id)
+        assert.equal(event.user, this.owner)
+        assert.equal(adminUser.userAddress, this.owner)
+        assert.equal(adminUser.requestsCount.toNumber(),1)
+        //const userRequest = await this.controlAcceso.userRequest(resourceRequested[3])
+        assert.equal(requester, this.owner)
+    })
+    it('accept request', async() => {
+        const result = await this.controlAcceso.acceptRequest(this.owner, 1, 1)
+        const haveAccess = await this.controlAcceso.haveAccess(1);
+        const allowedCount = await this.controlAcceso.allowedCount();
+        assert.equal(haveAccess, true)
+        assert.equal(allowedCount, 1)
+    })
     it('remove resource', async() => {
         const result = await this.controlAcceso.removeResource(this.resource1.id)
         const resourceCount = await this.controlAcceso.resourceCount()
-        assert.equal(resourceCount.toNumber(), 1)
         const event = result.logs[0].args
-        assert.equal(event.id.toNumber(), 1)
         const resource = await this.controlAcceso.idToResource.call(this.resource1.id)
+
+        assert.equal(resourceCount.toNumber(), 1)
+        assert.equal(event.id.toNumber(), 1)
         assert.equal(resource.id.toNumber(),0)
         assert.equal(resource.name, '')
         for(i=0; i<resourceCount; i++) {

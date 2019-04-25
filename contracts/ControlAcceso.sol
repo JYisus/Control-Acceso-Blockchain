@@ -25,6 +25,7 @@ contract ControlAcceso {
         bool admin;
         uint resourcesCount;
         uint requestsCount;
+        uint[] allowedResources;
 
     }
 
@@ -57,7 +58,7 @@ contract ControlAcceso {
         owner = msg.sender;
         resourceCount = 0;
         userCount = 1;
-        User memory _newUser = User(owner, "admin", userCount, true, 0, 0);
+        User memory _newUser = User(owner, "admin", userCount, true, 0, 0, new uint[](0));
         addressToUser[owner] = _newUser;
         // idToUserAddress[userCount] = owner;
         usersArray.push(msg.sender);
@@ -97,10 +98,21 @@ contract ControlAcceso {
         uint id
     );
 
+    event RequestResource(
+        address user,
+        uint resource
+    );
+
+    event AcceptRequest(
+        address user,
+        uint resource,
+        bool allowed
+    );
+
     function addUser(address _userAddress, string memory _username, bool _admin) public onlyAdmin {
         require(checkUsername(_username), "This username already exist");
         userCount++;
-        User memory _newUser = User(_userAddress, _username, userCount,_admin, 0, 0);
+        User memory _newUser = User(_userAddress, _username, userCount,_admin, 0, 0, new uint[](0));
         addressToUser[_userAddress] = _newUser;
         // idToUserAddress[userCount] = _userAddress;
         usersArray.push(_userAddress);
@@ -255,15 +267,6 @@ contract ControlAcceso {
             
         }  
     }
-
-    function requestResource(uint _id) public {
-        require(_id != 0);
-        User memory admin = addressToUser[idToResource[_id].creator];
-        addressToUser[admin.userAddress].requestsCount++;
-        // idToUser[admin.id].requestsCount++;
-        addressToRequests[admin.userAddress].push(Request(msg.sender,_id));
-    }
-
     /* 
         !!! Función de testeo, ELIMINAR O COMENTAR LUEGO.
     */
@@ -272,6 +275,59 @@ contract ControlAcceso {
         return idToResource[resourcesArray[index]].name;
     }
 
+    function requestResource(uint _id) public {
+        require(_id > 0 && idToResource[_id].id != 0);
+        User memory admin = addressToUser[idToResource[_id].creator];
+        addressToUser[admin.userAddress].requestsCount++;
+        // idToUser[admin.id].requestsCount++;
+        addressToRequests[admin.userAddress].push(Request(msg.sender,_id));
+        emit RequestResource(msg.sender, _id);
+    }
+
+    function isRequested(uint _id) public view returns (address) {
+        require(msg.sender == idToResource[_id].creator);
+        if(addressToUser[msg.sender].requestsCount == 0) {
+            return 0x0000000000000000000000000000000000000000;
+        }
+        else {
+            // Resource memory resource = idToResource[_id];
+            for(uint i = 0; i<addressToUser[msg.sender].requestsCount; i++) {
+                if(addressToRequests[msg.sender][i].resource == _id) {
+                    return addressToRequests[msg.sender][i].user;
+                }
+            }
+        }
+        return 0x0000000000000000000000000000000000000000;
+    }
+
+    function allowedCount() public view returns (uint) {
+        return(addressToUser[msg.sender].allowedResources.length);
+    }
+
+    function acceptRequest(address _user, uint _id, bool _accept) public {
+        require(_id != 0);
+        if(_accept) {
+            addressToUser[_user].allowedResources.push(_id);
+            emit AcceptRequest(_user, _id, _accept);
+            //User storage userAllowed = addressToUser[_user];
+            //userAllowed.allowedResources++;
+            //idToUser[userAllowed.id].allowedResources++;
+        }
+    }
+
+    function haveAccess(uint _id) public view returns (bool) {
+        require(_id != 0);
+        User memory _user = addressToUser[msg.sender];
+
+        if(_user.userAddress == idToResource[_id].creator) return true;
+
+        for(uint i=0; i<_user.allowedResources.length; i++) {
+            if(_user.allowedResources[i] == _id) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 } 
 
