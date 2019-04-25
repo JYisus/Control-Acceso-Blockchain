@@ -55,10 +55,19 @@ contract('ControlAcceso', (accounts) => {
         const event = result.logs[0].args
         assert.equal(event.userAddress, this.thirdUser.userAddress)
         assert.equal(event.admin, false)
+
+        for(i=0; i<userCount; i++) {
+            const user = await this.controlAcceso.getUser(i)
+            console.log(`${i}: ${user}`)
+        } 
     })
     it('remove user', async() => {
         const result = await this.controlAcceso.removeUser(this.secondUser.userAddress)
         const userCount = await this.controlAcceso.userCount()
+        for(i=0; i<userCount; i++) {
+            const user = await this.controlAcceso.getUser(i)
+            console.log(`${i}: ${user}`)
+        } 
         assert.equal(userCount.toNumber(), 2)
         const event = result.logs[0].args
         assert.equal(event.userAddress, this.secondUser.userAddress)

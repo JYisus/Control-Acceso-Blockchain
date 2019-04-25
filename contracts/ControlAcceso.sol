@@ -6,7 +6,7 @@ contract ControlAcceso {
     uint public userCount;
     uint public resourceCount;
     mapping(address => User) public addressToUser;
-    mapping(uint => address) public idToUserAddress;
+    // mapping(uint => address) public idToUserAddress;
     address[] public usersArray;
 
     mapping(uint => Resource) public idToResource;
@@ -58,7 +58,8 @@ contract ControlAcceso {
         userCount = 1;
         User memory _newUser = User(owner, "admin", userCount, true, 0, 0);
         addressToUser[owner] = _newUser;
-        idToUserAddress[userCount] = owner;
+        // idToUserAddress[userCount] = owner;
+        usersArray.push(msg.sender);
         emit CreateUser(owner, "admin", userCount, true);
     }
 
@@ -96,13 +97,22 @@ contract ControlAcceso {
     );
 
     function addUser(address _userAddress, string memory _username, bool _admin) public onlyAdmin {
-        userCount++;
         require(checkUsername(_username), "This username already exist");
+        userCount++;
         User memory _newUser = User(_userAddress, _username, userCount,_admin, 0, 0);
         addressToUser[_userAddress] = _newUser;
-        idToUserAddress[userCount] = _userAddress;
+        // idToUserAddress[userCount] = _userAddress;
         usersArray.push(_userAddress);
         emit CreateUser(_userAddress, _username, userCount, _admin);
+    }
+
+
+    /* 
+        !!! Función de testeo, ELIMINAR O COMENTAR LUEGO.
+    */
+    function getUser(uint index) public view returns (string memory){
+        require(index >= 0 && index < userCount);
+        return addressToUser[usersArray[index]].username;
     }
 
     /*  Función que comprueba si un userame está en uso.
@@ -111,10 +121,10 @@ contract ControlAcceso {
         número de usuarios. 
     */
     function checkUsername(string memory _username) public view returns(bool) {
-         for(uint i=1; i<=userCount; i++) {
+         for(uint i=0; i<userCount; i++) {
             // address exu = usersArray[i];
-            //string memory aux = addressToUser[exu].username;
-            string memory aux = addressToUser[idToUserAddress[i]].username;
+            string memory aux = addressToUser[usersArray[i]].username;
+            //string memory aux = addressToUser[idToUserAddress[i]].username;
             if(stringToBytes32(_username) == stringToBytes32(aux)) {
                 return false;
             }
@@ -134,17 +144,49 @@ contract ControlAcceso {
         }
     }
 
+    /*
+        Busca en el array de usuarios la posición del usuario con address _user.
+        Devuelve una tupla con un booleano que indica si se ha encontrado y un 
+        entero que indica la posición donde se ha encontrado.
+     */
+    function findUserIndex(address _user) private view returns (bool, uint) {
+        for(uint i=0; i < userCount; i++) {
+            if(_user == usersArray[i]) {
+                return (true,i);
+            }
+        }
+        return (false, 0);
+    }
+
     function removeUser(address _userAddress) public {
+        // requerir que sea admin o el propio usuario
         if (addressToUser[_userAddress].userAddress != nullAddress) {
-            uint _id = addressToUser[_userAddress].id;
+            bool finded;
+            uint index;
+            (finded, index) = findUserIndex(_userAddress);
+
+            if(finded) {
+                address lastUser = usersArray[userCount-1];
+                addressToUser[lastUser].id = index+1; // puede que sobre
+                usersArray[index] = lastUser;
+                delete addressToUser[_userAddress];
+                delete usersArray[userCount-1];
+                emit RemoveUser(_userAddress);
+                userCount--;
+            }
+            /* uint _id = addressToUser[_userAddress].id;
             delete addressToUser[_userAddress];
             
-            address lastUser = idToUserAddress[userCount];
+            
+            // address lastUser = idToUserAddress[userCount];
+            address lastUser = usersArray[userCount-1];
             addressToUser[lastUser].id = _id;
-            idToUserAddress[_id] = lastUser;
-            delete idToUserAddress[userCount];
+            // idToUserAddress[_id] = lastUser;
+            usersArray[_id-1] = lastUser;
+            //delete idToUserAddress[userCount];
+            delete usersArray[userCount-1];
             emit RemoveUser(_userAddress);
-            userCount--;
+            userCount--; */
         }
     }
 
@@ -160,6 +202,12 @@ contract ControlAcceso {
         emit CreateResource(resourceCount, _name, _description, msg.sender);
     }
 
+    /*
+        Busca en el array de recursos del usuario _user la posición del recurso 
+        con identificador _id.
+        Devuelve una tupla con un booleano que indica si se ha encontrado y un 
+        entero que indica la posición donde se ha encontrado.
+     */
     function findResourceIndex(address _user, uint _id) private view returns (bool, uint) {
         for(uint i=0; i < addressToUser[_user].resourcesCount; i++) {
             if(_id == addressToResourcesId[_user][i]) {
@@ -195,6 +243,9 @@ contract ControlAcceso {
         addressToRequests[admin.userAddress].push(Request(msg.sender,_id));
     }
 
+
+} 
+
 /*     function remove(uint index)  returns(User[] memory) {
         if (index >= array.length) return;
 
@@ -205,8 +256,6 @@ contract ControlAcceso {
         array.length--;
         return array;
     } */
-
-} 
 
 /* contract ControlAcceso {
     address public owner;
