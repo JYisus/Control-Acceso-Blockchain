@@ -86,17 +86,47 @@ contract('ControlAcceso', (accounts) => {
         assert.equal(resource.name, this.resource1.name)
         assert.equal(resource.description, this.resource1.description)
         assert.equal(resource.creator, this.firstUser.userAddress)
+
+        for(i=0; i<resourceCount; i++) {
+            const r = await this.controlAcceso.getResource.call(i)
+            console.log(`${i}: ${r}`)
+        } 
+        //assert.equal(usuario.adminResources, 1)
+    })
+    it('add another resource', async() => {
+        const result = await this.controlAcceso.addResource(this.resource2.name, this.resource2.description)
+        const resourceCount = await this.controlAcceso.resourceCount()
+        const event = result.logs[0].args
+        const resource = await this.controlAcceso.idToResource.call(this.resource2.id)
+        const usuario = await this.controlAcceso.addressToUser.call(this.firstUser.userAddress)
+
+        assert.equal(resourceCount.toNumber(), 2)
+        assert.equal(event.id.toNumber(), 2)
+        assert.equal(event.name, this.resource2.name)
+        assert.equal(resource.id.toNumber(),2)
+        assert.equal(resource.name, this.resource2.name)
+        assert.equal(resource.description, this.resource2.description)
+        assert.equal(resource.creator, this.firstUser.userAddress)
+
+        for(i=0; i<resourceCount; i++) {
+            const r = await this.controlAcceso.getResource.call(i)
+            console.log(`${i}: ${r}`)
+        } 
         //assert.equal(usuario.adminResources, 1)
     })
     it('remove resource', async() => {
         const result = await this.controlAcceso.removeResource(this.resource1.id)
         const resourceCount = await this.controlAcceso.resourceCount()
-        assert.equal(resourceCount.toNumber(), 0)
+        assert.equal(resourceCount.toNumber(), 1)
         const event = result.logs[0].args
         assert.equal(event.id.toNumber(), 1)
         const resource = await this.controlAcceso.idToResource.call(this.resource1.id)
         assert.equal(resource.id.toNumber(),0)
         assert.equal(resource.name, '')
+        for(i=0; i<resourceCount; i++) {
+            const r = await this.controlAcceso.getResource.call(i)
+            console.log(`${i}: ${r}`)
+        } 
         // const usuario = await this.controlAcceso.addressToUser.call(this.firstUser)
         // assert.equal(usuario.adminResources, 1)
     })

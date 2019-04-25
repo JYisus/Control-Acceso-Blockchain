@@ -12,6 +12,7 @@ contract ControlAcceso {
     mapping(uint => Resource) public idToResource;
     mapping(address => uint[]) public addressToResourcesId;
     mapping(address => Request[]) public addressToRequests;
+    uint[] public resourcesArray;
     // User[] users;
 
     /*
@@ -133,7 +134,7 @@ contract ControlAcceso {
     }
 
     // Utilidad para pasar pasar de string a bytes32 y poder comparar cadenas.
-    function stringToBytes32(string memory source) public pure returns (bytes32 result) {
+    function stringToBytes32(string memory source) private pure returns (bytes32 result) {
         bytes memory tempEmptyStringTest = bytes(source);
         if (tempEmptyStringTest.length == 0) {
             return 0x0;
@@ -198,6 +199,7 @@ contract ControlAcceso {
 
         addressToUser[msg.sender].resourcesCount++;
         addressToResourcesId[msg.sender].push(resourceCount);
+        resourcesArray.push(resourceCount);
 
         emit CreateResource(resourceCount, _name, _description, msg.sender);
     }
@@ -208,7 +210,7 @@ contract ControlAcceso {
         Devuelve una tupla con un booleano que indica si se ha encontrado y un 
         entero que indica la posición donde se ha encontrado.
      */
-    function findResourceIndex(address _user, uint _id) private view returns (bool, uint) {
+    function findUserResourceIndex(address _user, uint _id) private view returns (bool, uint) {
         for(uint i=0; i < addressToUser[_user].resourcesCount; i++) {
             if(_id == addressToResourcesId[_user][i]) {
                 return (true,i);
@@ -217,21 +219,40 @@ contract ControlAcceso {
         return (false, 0);
     }
 
+    function findResourceIndex(uint _id) private view returns (bool, uint) {
+        for(uint i=0; i < userCount; i++) {
+            if(_id == resourcesArray[i]) {
+                return (true,i);
+            }
+        }
+        return (false, 0);
+    }
+
+
+
     function removeResource(uint _id) public {
         if (_id>0 && _id<=resourceCount) {
-            resourceCount--;
-
             bool finded;
             uint index;
-            (finded, index) = findResourceIndex(msg.sender, _id);
+            (finded, index) = findResourceIndex(_id);
+            if(finded) {
+                uint lastResource = resourcesArray[resourceCount-1];
+                resourcesArray[index] = lastResource;
+                delete resourcesArray[resourceCount-1];
+                (finded, index) = findUserResourceIndex(msg.sender, _id);
 
-            if(finded == true) {
-                delete addressToResourcesId[msg.sender][index];
+                if(finded == true) {
+                    delete addressToResourcesId[msg.sender][index];
+                }
+                addressToUser[msg.sender].resourcesCount--;
+
+                
+                delete idToResource[_id];
+                emit RemoveResource(_id);
+                resourceCount--;
             }
-            addressToUser[msg.sender].resourcesCount--;
+
             
-            delete idToResource[_id];
-            emit RemoveResource(_id);
         }  
     }
 
@@ -241,6 +262,14 @@ contract ControlAcceso {
         addressToUser[admin.userAddress].requestsCount++;
         // idToUser[admin.id].requestsCount++;
         addressToRequests[admin.userAddress].push(Request(msg.sender,_id));
+    }
+
+    /* 
+        !!! Función de testeo, ELIMINAR O COMENTAR LUEGO.
+    */
+    function getResource(uint index) public view returns (string memory){
+        require(index >= 0 && index < resourceCount);
+        return idToResource[resourcesArray[index]].name;
     }
 
 
