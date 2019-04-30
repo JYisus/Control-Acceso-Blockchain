@@ -118,6 +118,27 @@ contract('ControlAcceso', (accounts) => {
         } 
         //assert.equal(usuario.adminResources, 1)
     })
+    it('add another resource more', async() => {
+        const result = await this.controlAcceso.addResource("resource3", this.resource2.description)
+        const resourceCount = await this.controlAcceso.resourceCount()
+        const event = result.logs[0].args
+        const resource = await this.controlAcceso.idToResource.call(3)
+        const usuario = await this.controlAcceso.addressToUser.call(this.firstUser.userAddress)
+
+        assert.equal(resourceCount.toNumber(), 3)
+        assert.equal(event.id.toNumber(), 3)
+        assert.equal(event.name, "resource3")
+        assert.equal(resource.id.toNumber(),3)
+        assert.equal(resource.name, "resource3")
+        assert.equal(resource.description, this.resource2.description)
+        assert.equal(resource.creator, this.firstUser.userAddress)
+
+        for(i=0; i<resourceCount; i++) {
+            const r = await this.controlAcceso.getResource.call(i)
+            console.log(`${i}: ${r}`)
+        } 
+        //assert.equal(usuario.adminResources, 1)
+    })
     it('request resource', async() => {
         const result = await this.controlAcceso.requestResource(1)
         const resourceRequested = await this.controlAcceso.idToResource.call(this.resource1.id)
@@ -134,19 +155,33 @@ contract('ControlAcceso', (accounts) => {
     })
     it('accept request', async() => {
         const result = await this.controlAcceso.acceptRequest(this.owner, 1, 1)
+        const event = result.logs[0].args
         const haveAccess = await this.controlAcceso.haveAccess(1);
         const allowedCount = await this.controlAcceso.allowedCount();
+
+        assert.equal(event.resource.toNumber(), this.resource1.id)
+        assert.equal(event.user, this.owner)
+        assert.equal(event.resource, 1)
+        assert.equal(event.allowed, true)
         assert.equal(haveAccess, true)
         assert.equal(allowedCount, 1)
     })
+    it('user is allowed', async() => {
+        const result = await this.controlAcceso.haveAccess(1)
+        const result2 = await this.controlAcceso.haveAccess(2)
+
+        
+        assert.equal(result, true)
+        assert.equal(result2,true)
+    })
     it('remove resource', async() => {
-        const result = await this.controlAcceso.removeResource(this.resource1.id)
+        const result = await this.controlAcceso.removeResource(this.resource2.id)
         const resourceCount = await this.controlAcceso.resourceCount()
         const event = result.logs[0].args
-        const resource = await this.controlAcceso.idToResource.call(this.resource1.id)
+        const resource = await this.controlAcceso.idToResource.call(this.resource2.id)
 
-        assert.equal(resourceCount.toNumber(), 1)
-        assert.equal(event.id.toNumber(), 1)
+        assert.equal(resourceCount.toNumber(), 2)
+        assert.equal(event.id.toNumber(), 2)
         assert.equal(resource.id.toNumber(),0)
         assert.equal(resource.name, '')
         for(i=0; i<resourceCount; i++) {

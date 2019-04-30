@@ -5,6 +5,7 @@ contract ControlAcceso {
     address nullAddress = 0x0000000000000000000000000000000000000000;
     uint public userCount;
     uint public resourceCount;
+    uint public actualResourceId;
     mapping(address => User) public addressToUser;
     // mapping(uint => address) public idToUserAddress;
     address[] public usersArray;
@@ -57,6 +58,7 @@ contract ControlAcceso {
     constructor() public {
         owner = msg.sender;
         resourceCount = 0;
+        actualResourceId = 0;
         userCount = 1;
         User memory _newUser = User(owner, "admin", userCount, true, 0, 0, new uint[](0));
         addressToUser[owner] = _newUser;
@@ -206,14 +208,17 @@ contract ControlAcceso {
     function addResource(string memory _name, string memory _description) public {
         // requerir que el que añada un recurso sea un usuario registrado
         resourceCount++;
-        Resource memory _newResource = Resource(resourceCount, _name, _description, now, msg.sender);
-        idToResource[resourceCount] = _newResource;
+        actualResourceId++;
+        Resource memory _newResource = Resource(actualResourceId, _name, _description, now, msg.sender);
+        idToResource[actualResourceId] = _newResource;
 
         addressToUser[msg.sender].resourcesCount++;
-        addressToResourcesId[msg.sender].push(resourceCount);
-        resourcesArray.push(resourceCount);
+        addressToResourcesId[msg.sender].push(actualResourceId);
+        resourcesArray.push(actualResourceId);
 
-        emit CreateResource(resourceCount, _name, _description, msg.sender);
+        
+
+        emit CreateResource(actualResourceId, _name, _description, msg.sender);
     }
 
     /*
@@ -232,7 +237,7 @@ contract ControlAcceso {
     }
 
     function findResourceIndex(uint _id) private view returns (bool, uint) {
-        for(uint i=0; i < userCount; i++) {
+        for(uint i=0; i < resourceCount; i++) {
             if(_id == resourcesArray[i]) {
                 return (true,i);
             }
@@ -243,7 +248,7 @@ contract ControlAcceso {
 
 
     function removeResource(uint _id) public {
-        if (_id>0 && _id<=resourceCount) {
+        require (_id!=0 && _id <= actualResourceId);
             bool finded;
             uint index;
             (finded, index) = findResourceIndex(_id);
@@ -259,13 +264,12 @@ contract ControlAcceso {
                 addressToUser[msg.sender].resourcesCount--;
 
                 
-                delete idToResource[_id];
+                
+            } 
+            delete idToResource[_id];
                 emit RemoveResource(_id);
                 resourceCount--;
-            }
 
-            
-        }  
     }
     /* 
         !!! Función de testeo, ELIMINAR O COMENTAR LUEGO.
@@ -300,10 +304,10 @@ contract ControlAcceso {
         return 0x0000000000000000000000000000000000000000;
     }
 
-    function allowedCount() public view returns (uint) {
-        return(addressToUser[msg.sender].allowedResources.length);
-    }
-
+    /*
+        Si _accept = true, permite el acceso al usuario con
+        address _user el acceso al recurso _id.
+    */
     function acceptRequest(address _user, uint _id, bool _accept) public {
         require(_id != 0);
         if(_accept) {
@@ -313,6 +317,27 @@ contract ControlAcceso {
             //userAllowed.allowedResources++;
             //idToUser[userAllowed.id].allowedResources++;
         }
+    }
+
+    /*
+        Devuelve la cantidad de peticiones que se le han hecho al usuario.
+    */
+    function getCountRequest() public view returns (uint) {
+        return addressToUser[msg.sender].requestsCount;
+    }
+
+    function getRequest(uint _id) public view returns (string memory, uint) {
+        //require(_id < addressToUser[msg.sender].countRequests && _id!=0);
+        Request memory _req = addressToRequests[msg.sender][_id];
+        return (addressToUser[_req.user].username, _req.resource);
+    }
+
+    /*
+        Devuelve la cantidad de recursos a los que el usuario
+        tiene acceso.
+    */
+    function allowedCount() public view returns (uint) {
+        return(addressToUser[msg.sender].allowedResources.length);
     }
 
     function haveAccess(uint _id) public view returns (bool) {

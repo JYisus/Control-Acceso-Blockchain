@@ -5,26 +5,13 @@ class AddUser extends React.Component {
   state = {stackId: null};
   constructor(props) {
     super(props);
+    this.newUserAddress = React.createRef();
     this.newUserName = React.createRef();
     this.inputAdmin = React.createRef();
 
     // this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
-
-  /* handleChange(event) {
-    this.setState({value: event.target.value});
-  } */
-/*   componentDidMount() {
-    const { drizzle } = this.props;
-    const contract = drizzle.contracts.ControlAcceso;
-
-    // let drizzle know we want to watch the `myString` method
-    const dataKey = contract.methods['addResource'].cacheCall(this.props.userId);
-
-    // save the `dataKey` to local component state for later reference
-    this.setState({ dataKey });
-  } */
 
   handleSubmit(event) {
     event.preventDefault();
@@ -38,9 +25,22 @@ class AddUser extends React.Component {
     {
       admin = true;
     }
-    const stackId = contract.methods.addUser.cacheSend(this.newUserName.current.value, admin, {gas:6721975});
+    const stackId = contract.methods.addUser.cacheSend(this.newUserAddress.current.value, this.newUserName.current.value, admin, {gas:6721975});
     // save the `dataKey` to local component state for later reference
     this.setState({ stackId });
+  /* handleChange(event) {
+    this.setState({value: event.target.value});
+  } */
+/*   componentDidMount() {
+    const { drizzle } = this.props;
+    const contract = drizzle.contracts.ControlAcceso;
+
+    // let drizzle know we want to watch the `myString` method
+    const dataKey = contract.methods['addResource'].cacheCall(this.props.userId);
+
+    // save the `dataKey` to local component state for later reference
+    this.setState({ dataKey });
+  } */
 
     //const form = event.target;
     //const data = new FormData(form);
@@ -70,7 +70,15 @@ class AddUser extends React.Component {
             Dirección
           </Form.Label>
           <Col sm="10">
-            <Form.Control name="newUserName" plaintext placeholder="address" ref={this.newUserName}/>
+            <Form.Control name="newUserAddress" plaintext placeholder="address" ref={this.newUserAddress}/>
+          </Col>
+        </Form.Group>
+        <Form.Group as={Row} controlId="formPlaintextNewUserName">
+          <Form.Label column sm="2">
+            Nombre
+          </Form.Label>
+          <Col sm="10">
+            <Form.Control name="newUserName" plaintext placeholder="username" ref={this.newUserName}/>
           </Col>
         </Form.Group>
 

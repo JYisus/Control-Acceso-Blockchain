@@ -16,7 +16,7 @@ class ResourceRow extends React.Component {
     const contract = drizzle.contracts.ControlAcceso;
 
     // let drizzle know we want to watch the `myString` method
-    const dataKey = contract.methods['idToResource'].cacheCall(this.props.userId);
+    const dataKey = contract.methods['idToResource'].cacheCall(this.props.resourceId);
 
     // save the `dataKey` to local component state for later reference
     this.setState({ dataKey });
@@ -29,9 +29,10 @@ class ResourceRow extends React.Component {
     console.log(drizzleState.accounts[0])
     // let drizzle know we want to watch the `myString` method
     // const stackId = contract.methods['addResource'].cacheSend(this.inputName.current.value, this.inputOrganization.current.value);
-    const stackId = contract.methods.removeResource.cacheSend(id, {gas:300000});
+    console.log(`id: ${id}`)
+    const stackId2 = contract.methods.removeResource.cacheSend(id, {gas:300000});
     // save the `dataKey` to local component state for later reference
-    this.setState({ stackId });
+    this.setState({ stackId2 });
 
     this.input = '';
     //event.preventDefault();
@@ -62,24 +63,30 @@ class ResourceRow extends React.Component {
     // using the saved `dataKey`, get the variable we're interested in
     const resource = ControlAcceso.idToResource[this.state.dataKey];
     let button;
+    // console.log(resource && resource.value[4] )
 
-    if(resource && resource.value[3] === this.props.drizzleState.accounts[0]) {
-      button = <Button onClick={this.handleRemove.bind(this, resource && resource.value[0])} variant="danger" size="sm">Eliminar</Button>
-    }
-    else {
-      button = <Button onClick={this.handleSubmit.bind(this, resource && resource.value[0])} variant="primary" size="sm">Solicitar</Button>
-    }
     if (resource && (resource.value[0] == 0)) {
       return null;
     }
-    return (
-      <tr>
-        <td>{resource && resource.value[0]}</td>
-        <td>{resource && resource.value[1]}</td>
-        <td>{resource && resource.value[2]}</td>
-        <td>{button}</td>
-      </tr>
-    );
+    else {
+      if(resource && resource.value[4] == this.props.drizzleState.accounts[0]) {
+        button = <Button onClick={this.handleRemove.bind(this, resource && resource.value[0])} variant="danger" size="sm">Eliminar</Button>
+      }
+      else {
+        button = <Button onClick={this.handleSubmit.bind(this, resource && resource.value[0])} variant="primary" size="sm">Solicitar</Button>
+      }
+      console.log(resource && `resource: ${resource.value[0]}`)
+      return (
+        
+        <tr>
+          <td>{resource && resource.value[0]}</td>
+          <td>{resource && resource.value[1]}</td>
+          <td>{resource && resource.value[2]}</td>
+          <td>{button}</td>
+        </tr>
+      );
+    }
+    
   }
 }
 

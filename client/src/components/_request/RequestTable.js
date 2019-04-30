@@ -12,13 +12,13 @@ class RequestTable extends React.Component {
 
     // let drizzle know we want to watch the `myString` method
     const dataKey = contract.methods['getCountRequest'].cacheCall();
-
     // save the `dataKey` to local component state for later reference
     this.setState({ dataKey });
   }
 
   render() {
     const { ControlAcceso } = this.props.drizzleState.contracts;
+
     const countRequest = ControlAcceso.getCountRequest[this.state.dataKey];
     
     const rows = [];

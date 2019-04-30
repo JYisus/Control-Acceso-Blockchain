@@ -6,7 +6,7 @@ class ResourceRow extends React.Component {
   constructor(props) {
     super(props);
     this.inputName = React.createRef();
-    this.inputOrganization = React.createRef();
+    this.inputDescription = React.createRef();
 
     // this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -33,14 +33,14 @@ class ResourceRow extends React.Component {
     console.log(drizzleState.accounts[0])
     // let drizzle know we want to watch the `myString` method
     // const stackId = contract.methods['addResource'].cacheSend(this.inputName.current.value, this.inputOrganization.current.value);
-    const stackId = contract.methods.addResource.cacheSend(this.inputName.current.value, this.inputOrganization.current.value, {gas:6721975});
+    const stackId = contract.methods.addResource.cacheSend(this.inputName.current.value, this.inputDescription.current.value, {gas:6721975});
     // save the `dataKey` to local component state for later reference
     this.setState({ stackId });
 
     //const form = event.target;
     //const data = new FormData(form);
     console.log(this.inputName.current.value)
-    console.log(this.inputOrganization.current.value)
+    console.log(this.inputDescription.current.value)
     this.input = '';
     //event.preventDefault();
   }
@@ -71,10 +71,10 @@ class ResourceRow extends React.Component {
       
         <Form.Group as={Row} controlId="formPlaintextOrganizationName">
           <Form.Label column sm="2">
-            Organización
+            Descripción
           </Form.Label>
           <Col sm="10">
-            <Form.Control name="resourceOrganization" plaintext placeholder="Camillas SL" ref={this.inputOrganization}/>
+            <Form.Control name="resourceDescription" plaintext placeholder="Description" ref={this.inputDescription}/>
           </Col>
         </Form.Group>
         <div className="d-flex justify-content-center">
