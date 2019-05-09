@@ -17,9 +17,10 @@ class ResourceRow extends React.Component {
 
     // let drizzle know we want to watch the `myString` method
     const dataKey = contract.methods['idToResource'].cacheCall(this.props.resourceId);
+    const dataKey2 = contract.methods['haveAccess'].cacheCall(this.props.resourceId);
 
     // save the `dataKey` to local component state for later reference
-    this.setState({ dataKey });
+    this.setState({ dataKey, dataKey2 });
   }
 
   handleRemove(id, event) {
@@ -62,6 +63,7 @@ class ResourceRow extends React.Component {
 
     // using the saved `dataKey`, get the variable we're interested in
     const resource = ControlAcceso.idToResource[this.state.dataKey];
+    const haveAccess = ControlAcceso.haveAccess[this.state.dataKey2];
     let button;
     // console.log(resource && resource.value[4] )
 
@@ -73,7 +75,13 @@ class ResourceRow extends React.Component {
         button = <Button onClick={this.handleRemove.bind(this, resource && resource.value[0])} variant="danger" size="sm">Eliminar</Button>
       }
       else {
-        button = <Button onClick={this.handleSubmit.bind(this, resource && resource.value[0])} variant="primary" size="sm">Solicitar</Button>
+        if(haveAccess && haveAccess.value == true) {
+          button = <Button variant="success" size="sm">Disponible</Button>
+        }
+        else {
+          
+          button = <Button onClick={this.handleSubmit.bind(this, resource && resource.value[0])} variant="primary" size="sm">Solicitar</Button>
+        }
       }
       console.log(resource && `resource: ${resource.value[0]}`)
       return (

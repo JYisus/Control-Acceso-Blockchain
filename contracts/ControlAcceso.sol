@@ -49,10 +49,15 @@ contract ControlAcceso {
         Esta estructura representa una petición de un recurso.
         El usuario con address user solicita acceso al recurso
         con id resource.
+        reply:
+        - 0 Rechazado
+        - 1 Aceptado
+        - 2 Pendiente
      */
     struct Request {
         address user;
         uint resource;
+        uint reply;
     }
 
     constructor() public {
@@ -317,6 +322,11 @@ contract ControlAcceso {
             //userAllowed.allowedResources++;
             //idToUser[userAllowed.id].allowedResources++;
         }
+        for(uint i = 0; i < addressToUser[msg.sender].requestsCount; i++) {
+            if ((addressToRequests[msg.sender][i].resource == _id) && (addressToRequests[msg.sender][i].user == _user)) {
+                delete addressToRequests[msg.sender][i];
+            }
+        }
     }
 
     /*
@@ -326,10 +336,10 @@ contract ControlAcceso {
         return addressToUser[msg.sender].requestsCount;
     }
 
-    function getRequest(uint _id) public view returns (string memory, uint) {
+    function getRequest(uint _id) public view returns (string memory, uint, address) {
         //require(_id < addressToUser[msg.sender].countRequests && _id!=0);
         Request memory _req = addressToRequests[msg.sender][_id];
-        return (addressToUser[_req.user].username, _req.resource);
+        return (addressToUser[_req.user].username, _req.resource, _req.user);
     }
 
     /*

@@ -31,7 +31,10 @@ class RequestRow extends React.Component {
     console.log(drizzleState.accounts[0])
     // let drizzle know we want to watch the `myString` method
     // const stackId = contract.methods['addResource'].cacheSend(this.inputName.current.value, this.inputOrganization.current.value);
-    const stackId = contract.methods.requestResource.cacheSend(id, {gas:300000});
+    console.log("--------------------------------------")
+    console.log(id[1])
+    console.log(id[2])
+    const stackId = contract.methods.acceptRequest.cacheSend(id[2], id[1], true,{gas:300000});
     // save the `dataKey` to local component state for later reference
     this.setState({ stackId });
 
