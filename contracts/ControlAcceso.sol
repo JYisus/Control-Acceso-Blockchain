@@ -49,7 +49,7 @@ contract ControlAcceso {
         Esta estructura representa una petición de un recurso.
         El usuario con address user solicita acceso al recurso
         con id resource.
-        reply:
+        state:
         - 0 Rechazado
         - 1 Aceptado
         - 2 Pendiente
@@ -57,7 +57,7 @@ contract ControlAcceso {
     struct Request {
         address user;
         uint resource;
-        uint reply;
+        uint state;
     }
 
     constructor() public {
@@ -280,21 +280,21 @@ contract ControlAcceso {
         !!! Función de testeo, ELIMINAR O COMENTAR LUEGO.
     */
     function getResource(uint index) public view returns (string memory){
-        require(index >= 0 && index < resourceCount);
+        require(index >= 0, 'index fuera de rango');
         return idToResource[resourcesArray[index]].name;
     }
 
     function requestResource(uint _id) public {
-        require(_id > 0 && idToResource[_id].id != 0);
+        require(_id > 0 && idToResource[_id].id != 0, 'id fuera de rango');
         User memory admin = addressToUser[idToResource[_id].creator];
         addressToUser[admin.userAddress].requestsCount++;
         // idToUser[admin.id].requestsCount++;
-        addressToRequests[admin.userAddress].push(Request(msg.sender,_id));
+        addressToRequests[admin.userAddress].push(Request(msg.sender,_id, 2));
         emit RequestResource(msg.sender, _id);
     }
 
     function isRequested(uint _id) public view returns (address) {
-        require(msg.sender == idToResource[_id].creator);
+        require(msg.sender == idToResource[_id].creator, 'usuario no autorizado');
         if(addressToUser[msg.sender].requestsCount == 0) {
             return 0x0000000000000000000000000000000000000000;
         }
@@ -324,7 +324,12 @@ contract ControlAcceso {
         }
         for(uint i = 0; i < addressToUser[msg.sender].requestsCount; i++) {
             if ((addressToRequests[msg.sender][i].resource == _id) && (addressToRequests[msg.sender][i].user == _user)) {
-                delete addressToRequests[msg.sender][i];
+                if(_accept) {
+                    addressToRequests[msg.sender][i].state = 1;
+                }
+                else {
+                    addressToRequests[msg.sender][i].state = 0;
+                }
             }
         }
     }
@@ -356,12 +361,22 @@ contract ControlAcceso {
 
         if(_user.userAddress == idToResource[_id].creator) return true;
 
-        for(uint i=0; i<_user.allowedResources.length; i++) {
+        for(uint i = 0; i < _user.allowedResources.length; i++) {
             if(_user.allowedResources[i] == _id) {
                 return true;
             }
         }
         return false;
+    }
+
+    function getRequestState(uint _id) public view returns (uint) {
+        address _owner = idToResource[_id].creator;
+        for(uint i = 0; i < addressToUser[_owner].requestsCount; i++) {
+            if((addressToRequests[_owner][i].user == msg.sender) && (addressToRequests[_owner][i].resource == _id)) {
+                return addressToRequests[_owner][i].state;
+            }
+        }
+        return 0;
     }
 
 } 
